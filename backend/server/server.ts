@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import 'dotenv/config.js';
 import express from 'express';
 import pg from 'pg';
 import { ClientError, errorMiddleware } from './lib/index.js';
@@ -14,7 +14,7 @@ const db = new pg.Pool({
 
 const app = express();
 
-const reactStaticDir = new URL('../client/dist', import.meta.url).pathname;
+const reactStaticDir = new URL('../../frontend/dist', import.meta.url).pathname;
 const uploadsStaticDir = new URL('public', import.meta.url).pathname;
 
 app.use(express.static(reactStaticDir));

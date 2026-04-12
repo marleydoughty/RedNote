@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import type { DateClickArg } from '@fullcalendar/interaction';
-import type { EventInput } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid/index.js';
+import interactionPlugin from '@fullcalendar/interaction/index.js';
+import type { DateClickArg } from '@fullcalendar/interaction/index.js';
+import type { EventInput } from '@fullcalendar/core/index.js';
 import type { CycleEntry, Prediction } from '../types';
 
 type Props = {

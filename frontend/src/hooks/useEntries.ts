@@ -3,7 +3,20 @@ import type { CycleEntry } from '../types';
 
 export type EntryMap = Record<string, CycleEntry>;
 
-export function useEntries() {
+type UseEntriesReturn = {
+  entries: EntryMap;
+  isLoading: boolean;
+  error: string | null;
+  markDay: (date: string, notes?: string) => Promise<CycleEntry>;
+  unmarkDay: (date: string) => Promise<void>;
+  updateNote: (
+    date: string,
+    notes: string,
+    isPeriod: boolean
+  ) => Promise<CycleEntry>;
+};
+
+export function useEntries(): UseEntriesReturn {
   const [entries, setEntries] = useState<EntryMap>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
