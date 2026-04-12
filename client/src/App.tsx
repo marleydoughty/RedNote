@@ -1,35 +1,40 @@
-import { useEffect, useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+import { useState } from 'react';
+import Calendar from './components/Calendar';
+import DayModal from './components/DayModal';
+import PredictionBanner from './components/PredictionBanner';
+import { useEntries } from './hooks/useEntries';
+import './App.scss';
 
 export default function App() {
-  const [serverData, setServerData] = useState('');
-
-  useEffect(() => {
-    async function readServerData() {
-      const resp = await fetch('/api/hello');
-      const data = await resp.json();
-
-      console.log('Data from server:', data);
-
-      setServerData(data.message);
-    }
-
-    readServerData();
-  }, []);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const { entries, markDay, unmarkDay, updateNote } = useEntries();
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>{serverData}</h1>
-    </>
+    <div className="app">
+      <header className="app-header">
+        <div className="header-content">
+          <span className="header-logo" aria-hidden="true">
+            🌹
+          </span>
+          <h1 className="header-title">RedNote</h1>
+        </div>
+      </header>
+
+      <main className="app-main">
+        <PredictionBanner />
+        <Calendar entries={entries} onDateClick={setSelectedDate} />
+      </main>
+
+      {selectedDate && (
+        <DayModal
+          date={selectedDate}
+          entry={entries[selectedDate]}
+          onMarkDay={markDay}
+          onUnmarkDay={unmarkDay}
+          onUpdateNote={updateNote}
+          onClose={() => setSelectedDate(null)}
+        />
+      )}
+    </div>
   );
 }
