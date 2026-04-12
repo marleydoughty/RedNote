@@ -1,11 +1,16 @@
--- Use SQL insert statements to add any
--- starting/dummy data to your database tables
+-- Seed data: two full cycles so predictions work on first load.
+-- Cycle 1 starts Mar 3, cycle 2 starts Mar 31 → avg 28 days → next predicted ~Apr 28.
 
--- EXAMPLE:
-
---  insert into "todos"
---    ("task", "isCompleted")
---    values
---      ('Learn to code', false),
---      ('Build projects', false),
---      ('Get a job', false);
+insert into "cycle_entries"
+  ("date", "isPeriod", "notes")
+  values
+    ('2026-03-03', true, 'Day 1 — started in the evening'),
+    ('2026-03-04', true, null),
+    ('2026-03-05', true, 'Pretty heavy today'),
+    ('2026-03-06', true, null),
+    ('2026-03-07', true, 'Almost done'),
+    ('2026-03-31', true, 'On time this month!'),
+    ('2026-04-01', true, null),
+    ('2026-04-02', true, 'Cramping a bit'),
+    ('2026-04-03', true, null),
+    ('2026-04-04', true, null);
