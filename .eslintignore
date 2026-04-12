@@ -1,0 +1,2 @@
+# ESLint’s default/TS parser cannot parse HTML; lfz html override often fails in the IDE.
+**/*.html
