@@ -44,8 +44,10 @@
     letter-spacing: -0.025em;
     background: linear-gradient(
       130deg,
-      var(--text-primary) 30%,
-      var(--color-primary) 100%
+      #ef9bba 0%,
+      #e8547a 45%,
+      #d93f63 75%,
+      #c92f54 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -69,9 +71,11 @@
   gap: 0.875rem;
   padding: 0.9rem 1rem;
   background: linear-gradient(
-    135deg,
-    rgba(155, 112, 212, 0.08),
-    rgba(29, 25, 41, 0.9)
+    130deg,
+    rgba(239, 155, 186, 0.18) 0%,
+    rgba(232, 84, 122, 0.12) 45%,
+    rgba(217, 63, 99, 0.1) 75%,
+    rgba(201, 47, 84, 0.08) 100%
   );
   border: 1px solid rgba(155, 112, 212, 0.22);
   border-radius: var(--radius-md);
@@ -107,30 +111,17 @@
     text-overflow: ellipsis;
   }
 
-  .confidence-badge {
-    font-size: 0.63rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    padding: 0.22rem 0.55rem;
-    border-radius: 100px;
-    flex-shrink: 0;
-
-    &.confidence-high {
-      background: rgba(74, 195, 145, 0.15);
-      color: #4ec993;
-    }
-
-    &.confidence-medium {
-      background: rgba(255, 186, 73, 0.15);
-      color: #ffba49;
-    }
-
-    &.confidence-low {
-      background: rgba(255, 255, 255, 0.07);
-      color: var(--text-muted);
-    }
-  }
+  .phase-badge {
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0.22rem 0.55rem;
+  border-radius: 100px;
+  flex-shrink: 0;
+  background: rgba(232, 84, 122, 0.10);
+  color: #d93f63;
+}
 }
 
 // ─── Calendar Wrapper ──────────────────────────────────────────────────────────
@@ -163,11 +154,20 @@
       padding: 1rem 1.25rem 0.6rem;
 
       .fc-toolbar-title {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        letter-spacing: -0.01em;
-      }
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: linear-gradient(
+    130deg,
+    #ef9bba 0%,
+    #e8547a 45%,
+    #d93f63 75%,
+    #c92f54 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
       .fc-button {
         border-radius: var(--radius-sm);
@@ -235,7 +235,6 @@
           width: 26px;
           height: 26px;
           display: flex;
-          align-items: center;
           justify-content: center;
           font-weight: 600;
         }
@@ -316,9 +315,7 @@
   margin: 0 auto;
 
   // Subtle top glow
-  box-shadow:
-    0 -8px 40px rgba(0, 0, 0, 0.5),
-    0 -1px 0 rgba(232, 84, 122, 0.12);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5), 0 -1px 0 rgba(232, 84, 122, 0.12);
 
   .modal-handle {
     width: 36px;
@@ -358,10 +355,10 @@
 
 .toggle-btn {
   width: 50px;
-  height: 28px;
+  height: 30px;
   border-radius: 100px;
-  border: none;
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #e8547a;
+  background: white;
   cursor: pointer;
   position: relative;
   transition: background 0.25s ease;
@@ -374,9 +371,8 @@
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: var(--text-muted);
-    transition:
-      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background: #e8547a;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
       background 0.25s ease;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
   }

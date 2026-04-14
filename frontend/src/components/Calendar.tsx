@@ -58,9 +58,9 @@ export default function Calendar({ entries, onDateClick }: Props) {
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         headerToolbar={{
-          left: 'prev',
+          left: 'today',
           center: 'title',
-          right: 'next',
+          right: 'prev next',
         }}
         dateClick={(arg: DateClickArg) => onDateClick(arg.dateStr)}
         events={[...periodEvents, ...predictedEvents]}

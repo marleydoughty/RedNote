@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import faviconUrl from '../assets/womens-day.png';
+import faviconUrl from '../assets/cycle.png';
 import './index.scss';
 
 const favicon = document.createElement('link');
