@@ -4,7 +4,11 @@ import type { CycleEntry } from '../types';
 type Props = {
   date: string;
   entry: CycleEntry | undefined;
-  onMarkDay: (date: string, notes?: string) => Promise<CycleEntry>;
+  onMarkDay: (
+    date: string,
+    isPeriod: boolean,
+    notes?: string
+  ) => Promise<CycleEntry>;
   onUnmarkDay: (date: string) => Promise<void>;
   onUpdateNote: (
     date: string,
@@ -47,7 +51,7 @@ export default function DayModal({
           await onUpdateNote(date, notes.trim(), isPeriod);
         }
       } else if (isPeriod || notes.trim()) {
-        await onMarkDay(date, notes.trim() || undefined);
+        await onMarkDay(date, isPeriod, notes.trim() || undefined);
       }
       onClose();
     } catch (err) {

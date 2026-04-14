@@ -7,7 +7,11 @@ type UseEntriesReturn = {
   entries: EntryMap;
   isLoading: boolean;
   error: string | null;
-  markDay: (date: string, notes?: string) => Promise<CycleEntry>;
+  markDay: (
+    date: string,
+    isPeriod: boolean,
+    notes?: string
+  ) => Promise<CycleEntry>;
   unmarkDay: (date: string) => Promise<void>;
   updateNote: (
     date: string,
@@ -23,14 +27,20 @@ export function useEntries(): UseEntriesReturn {
 
   const fetchEntries = useCallback(async (start: string, end: string) => {
     setIsLoading(true);
+    setError(null);
+
     try {
       const res = await fetch(`/api/entries?start=${start}&end=${end}`);
       if (!res.ok) throw new Error('Failed to fetch entries');
+
       const data: CycleEntry[] = await res.json();
       const map: EntryMap = {};
+
       for (const entry of data) {
-        map[entry.date] = entry;
+        const normalizedEntry = normalizeEntry(entry);
+        map[normalizedEntry.date] = normalizedEntry;
       }
+
       setEntries(map);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -39,34 +49,55 @@ export function useEntries(): UseEntriesReturn {
     }
   }, []);
 
-  // Fetch a broad range on mount: 6 months back to 6 months forward
   useEffect(() => {
     const now = new Date();
     const start = new Date(now);
     start.setMonth(start.getMonth() - 6);
+
     const end = new Date(now);
     end.setMonth(end.getMonth() + 6);
+
     fetchEntries(toDateStr(start), toDateStr(end));
   }, [fetchEntries]);
 
   const markDay = useCallback(
-    async (date: string, notes?: string): Promise<CycleEntry> => {
+    async (
+      date: string,
+      isPeriod: boolean,
+      notes?: string
+    ): Promise<CycleEntry> => {
       const res = await fetch('/api/entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, isPeriod: true, notes: notes ?? null }),
+        body: JSON.stringify({
+          date,
+          isPeriod,
+          notes: notes ?? null,
+        }),
       });
+
       if (!res.ok) throw new Error('Failed to mark day');
+
       const entry: CycleEntry = await res.json();
-      setEntries((prev) => ({ ...prev, [date]: entry }));
-      return entry;
+      const normalizedEntry = normalizeEntry(entry);
+
+      setEntries((prev) => ({
+        ...prev,
+        [normalizedEntry.date]: normalizedEntry,
+      }));
+
+      return normalizedEntry;
     },
     []
   );
 
   const unmarkDay = useCallback(async (date: string): Promise<void> => {
-    const res = await fetch(`/api/entries/${date}`, { method: 'DELETE' });
+    const res = await fetch(`/api/entries/${date}`, {
+      method: 'DELETE',
+    });
+
     if (!res.ok) throw new Error('Failed to remove entry');
+
     setEntries((prev) => {
       const next = { ...prev };
       delete next[date];
@@ -81,32 +112,63 @@ export function useEntries(): UseEntriesReturn {
       isPeriod: boolean
     ): Promise<CycleEntry> => {
       const existing = entries[date];
+
       if (!existing) {
-        // No entry yet — create one
         const res = await fetch('/api/entries', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date, isPeriod, notes: notes || null }),
+          body: JSON.stringify({
+            date,
+            isPeriod,
+            notes: notes || null,
+          }),
         });
+
         if (!res.ok) throw new Error('Failed to create entry');
+
         const entry: CycleEntry = await res.json();
-        setEntries((prev) => ({ ...prev, [date]: entry }));
-        return entry;
+        const normalizedEntry = normalizeEntry(entry);
+
+        setEntries((prev) => ({
+          ...prev,
+          [normalizedEntry.date]: normalizedEntry,
+        }));
+
+        return normalizedEntry;
       }
+
       const res = await fetch(`/api/entries/${date}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: notes || null, isPeriod }),
+        body: JSON.stringify({
+          notes: notes || null,
+          isPeriod,
+        }),
       });
+
       if (!res.ok) throw new Error('Failed to update entry');
+
       const updated: CycleEntry = await res.json();
-      setEntries((prev) => ({ ...prev, [date]: updated }));
-      return updated;
+      const normalizedEntry = normalizeEntry(updated);
+
+      setEntries((prev) => ({
+        ...prev,
+        [normalizedEntry.date]: normalizedEntry,
+      }));
+
+      return normalizedEntry;
     },
     [entries]
   );
 
   return { entries, isLoading, error, markDay, unmarkDay, updateNote };
+}
+
+function normalizeEntry(entry: CycleEntry): CycleEntry {
+  return {
+    ...entry,
+    date: entry.date.slice(0, 10),
+  };
 }
 
 function toDateStr(d: Date): string {
