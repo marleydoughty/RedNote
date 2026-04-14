@@ -3,7 +3,7 @@ import Calendar from '../components/Calendar';
 import DayModal from '../components/DayModal';
 import PredictionBanner from '../components/PredictionBanner';
 import { useEntries } from '../hooks/useEntries';
-import logoUrl from '../assets/womens-day.png';
+import logoUrl from '../assets/cycle.png';
 import './App.scss';
 
 export default function App() {
