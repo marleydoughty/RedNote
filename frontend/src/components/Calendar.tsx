@@ -34,7 +34,33 @@ export default function Calendar({ entries, onDateClick }: Props) {
       .filter((e) => e.isPeriod)
       .map((e) => e.date)
   );
-  const predictDateSet = new Set(predictions.map((p) => p.date));
+  const predictDateSet = new Set(
+    predictions.flatMap((p) => {
+      const base = new Date(`${p.date}T00:00:00`);
+      return Array.from({ length: 5 }, (_, i) => {
+        const d = new Date(base);
+        d.setDate(d.getDate() - 2 + i); // days -2,-1,0,+1,+2 around predicted start
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+          2,
+          '0'
+        )}-${String(d.getDate()).padStart(2, '0')}`;
+      });
+    })
+  );
+
+  const ovulationDateSet = new Set(
+    predictions.flatMap((p) => {
+      const base = new Date(`${p.date}T00:00:00`);
+      return Array.from({ length: 5 }, (_, i) => {
+        const d = new Date(base);
+        d.setDate(d.getDate() - (16 - i)); // days 16,15,14,13,12 before
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+          2,
+          '0'
+        )}-${String(d.getDate()).padStart(2, '0')}`;
+      });
+    })
+  );
 
   // Period days as background events
   const periodEvents: EventInput[] = [...periodDateSet].map((date) => ({
@@ -42,14 +68,6 @@ export default function Calendar({ entries, onDateClick }: Props) {
     date,
     display: 'background',
     backgroundColor: 'rgba(232, 84, 122, 0.28)',
-  }));
-
-  // Predicted days as background events
-  const predictedEvents: EventInput[] = predictions.map((p) => ({
-    id: `pred-${p.date}`,
-    date: p.date,
-    display: 'background',
-    backgroundColor: 'rgba(155, 112, 212, 0.18)',
   }));
 
   return (
@@ -63,7 +81,7 @@ export default function Calendar({ entries, onDateClick }: Props) {
           right: 'prev next',
         }}
         dateClick={(arg: DateClickArg) => onDateClick(arg.dateStr)}
-        events={[...periodEvents, ...predictedEvents]}
+        events={[...periodEvents]}
         height="auto"
         dayCellClassNames={(arg) => {
           const ds = fcDateStr(arg.date);
@@ -71,6 +89,7 @@ export default function Calendar({ entries, onDateClick }: Props) {
           if (periodDateSet.has(ds)) classes.push('is-period-day');
           if (predictDateSet.has(ds) && !periodDateSet.has(ds))
             classes.push('is-predicted-day');
+          if (ovulationDateSet.has(ds)) classes.push('is-ovulation-day');
           if (entries[ds]?.notes) classes.push('has-note');
           return classes;
         }}
