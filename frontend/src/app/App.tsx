@@ -15,7 +15,7 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { entries, markDay, unmarkDay, updateNote } = useEntries();
+  const { entries, markDay, unmarkDay, updateNote } = useEntries(user?.userId);
 
   // Restore session from token on mount
   useEffect(() => {

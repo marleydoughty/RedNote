@@ -301,7 +301,7 @@
     }
 
     // Note indicator — folded corner bottom-right
-    .fc-daygrid-day.has-note .fc-daygrid-day-frame {
+    .fc-daygrid-day.has-note {
       position: relative;
       overflow: hidden;
 
@@ -311,12 +311,12 @@
         position: absolute;
         bottom: 0;
         right: 0;
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 0 0 14px 14px;
-        border-color: transparent transparent var(--color-primary) transparent;
-        opacity: 0.5;
+        width: 16px;
+        height: 16px;
+        background: var(--color-primary);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+        opacity: 0.45;
+        z-index: 3;
       }
 
       // the white flap on top
@@ -325,11 +325,11 @@
         position: absolute;
         bottom: 0;
         right: 0;
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 0 8px 8px 0;
-        border-color: transparent #fff transparent transparent;
+        width: 9px;
+        height: 9px;
+        background: rgba(255, 255, 255, 0.7);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+        z-index: 4;
       }
     }
 
