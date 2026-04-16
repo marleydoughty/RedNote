@@ -253,10 +253,19 @@ app.get('/api/predict', authMiddleware, async (req, res, next) => {
 
     const dateSet = new Set(dates.map(utcDateStr));
 
-    const startDates = dates.filter((d) => {
+    // Find cycle start dates — a day is a start if the previous day isn't marked
+    const rawStarts = dates.filter((d) => {
       const prev = new Date(d);
       prev.setUTCDate(prev.getUTCDate() - 1);
       return !dateSet.has(utcDateStr(prev));
+    });
+
+    // Merge starts that are fewer than 3 days apart (same period, gap in logging)
+    const startDates = rawStarts.filter((d, i) => {
+      if (i === 0) return true;
+      const daysSincePrev =
+        (d.getTime() - rawStarts[i - 1].getTime()) / (1000 * 60 * 60 * 24);
+      return daysSincePrev >= 3;
     });
 
     const lastStart = startDates[startDates.length - 1];
