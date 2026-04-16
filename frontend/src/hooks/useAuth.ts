@@ -25,8 +25,7 @@ export function useAuth(): UseAuthReturn {
       body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Invalid credentials');
+      throw new Error('Invalid username or password');
     }
     const { user, token }: AuthResponse = await res.json();
     localStorage.setItem(TOKEN_KEY, token);

@@ -35,6 +35,30 @@ function utcDateStr(d: Date): string {
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────────
 
+function validatePassword(password: string): string | null {
+  if (password.length < 8) return 'Password must be at least 8 characters';
+  if (!/[A-Z]/.test(password))
+    return 'Password must contain an uppercase letter';
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password))
+    return 'Password must contain a symbol';
+  return null;
+}
+
+/** GET /api/auth/check-username?username=xxx */
+app.get('/api/auth/check-username', async (req, res, next) => {
+  try {
+    const { username } = req.query;
+    if (!username) throw new ClientError(400, 'username is required');
+    const result = await db.query(
+      `SELECT 1 FROM "users" WHERE "username" = $1`,
+      [username]
+    );
+    res.json({ available: result.rows.length === 0 });
+  } catch (err) {
+    next(err);
+  }
+});
+
 /** POST /api/auth/sign-up */
 app.post('/api/auth/sign-up', async (req, res, next) => {
   try {
@@ -42,6 +66,9 @@ app.post('/api/auth/sign-up', async (req, res, next) => {
     if (!username || !password) {
       throw new ClientError(400, 'username and password are required');
     }
+    const passwordError = validatePassword(password);
+    if (passwordError) throw new ClientError(400, passwordError);
+
     const hashed = await argon2.hash(password);
     const result = await db.query(
       `INSERT INTO "users" ("username", "password")
@@ -50,9 +77,13 @@ app.post('/api/auth/sign-up', async (req, res, next) => {
       [username, hashed]
     );
     const user = result.rows[0];
-    const token = jwt.sign({ userId: user.userId }, tokenSecret, {
-      expiresIn: '7d',
-    });
+    const token = jwt.sign(
+      { userId: user.userId, username: user.username },
+      tokenSecret,
+      {
+        expiresIn: '7d',
+      }
+    );
     res.status(201).json({ user, token });
   } catch (err: any) {
     if (err.code === '23505') {
@@ -78,9 +109,13 @@ app.post('/api/auth/sign-in', async (req, res, next) => {
     if (!user) throw new ClientError(401, 'invalid credentials');
     const valid = await argon2.verify(user.password, password);
     if (!valid) throw new ClientError(401, 'invalid credentials');
-    const token = jwt.sign({ userId: user.userId }, tokenSecret, {
-      expiresIn: '7d',
-    });
+    const token = jwt.sign(
+      { userId: user.userId, username: user.username },
+      tokenSecret,
+      {
+        expiresIn: '7d',
+      }
+    );
     res.json({ user: { userId: user.userId, username: user.username }, token });
   } catch (err) {
     next(err);

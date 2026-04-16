@@ -26,7 +26,7 @@ function authHeaders(extra?: Record<string, string>): Record<string, string> {
   return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
 }
 
-export function useEntries(): UseEntriesReturn {
+export function useEntries(userId?: number): UseEntriesReturn {
   const [entries, setEntries] = useState<EntryMap>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +58,7 @@ export function useEntries(): UseEntriesReturn {
   }, []);
 
   useEffect(() => {
+    if (!userId) return;
     const now = new Date();
     const start = new Date(now);
     start.setMonth(start.getMonth() - 6);
@@ -66,7 +67,7 @@ export function useEntries(): UseEntriesReturn {
     end.setMonth(end.getMonth() + 6);
 
     fetchEntries(toDateStr(start), toDateStr(end));
-  }, [fetchEntries]);
+  }, [fetchEntries, userId]);
 
   const markDay = useCallback(
     async (

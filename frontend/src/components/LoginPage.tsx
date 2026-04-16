@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import type { AuthUser } from '../types';
 import logoUrl from '../assets/cycle.png';
 
@@ -7,12 +7,44 @@ type Props = {
   onSignUp: (username: string, password: string) => Promise<AuthUser>;
 };
 
+function getPasswordHints(password: string) {
+  return [
+    { label: 'At least 8 characters', met: password.length >= 8 },
+    { label: 'One uppercase letter', met: /[A-Z]/.test(password) },
+    {
+      label: 'One symbol',
+      met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+    },
+  ];
+}
+
 export default function LoginPage({ onSignIn, onSignUp }: Props) {
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [usernameTaken, setUsernameTaken] = useState(false);
+
+  // Live username availability check (sign-up only)
+  useEffect(() => {
+    if (mode !== 'sign-up' || username.length < 2) {
+      setUsernameTaken(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/auth/check-username?username=${encodeURIComponent(username)}`
+        );
+        const { available } = await res.json();
+        setUsernameTaken(!available);
+      } catch {
+        // silently ignore
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [username, mode]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -53,6 +85,11 @@ export default function LoginPage({ onSignIn, onSignUp }: Props) {
               autoComplete={mode === 'sign-in' ? 'username' : 'new-password'}
               required
             />
+            {mode === 'sign-up' && usernameTaken && (
+              <span className="login-error" role="alert">
+                Username already taken
+              </span>
+            )}
           </label>
 
           <label className="login-field">
@@ -67,6 +104,16 @@ export default function LoginPage({ onSignIn, onSignUp }: Props) {
               required
             />
           </label>
+
+          {mode === 'sign-up' && password.length > 0 && (
+            <ul className="password-hints">
+              {getPasswordHints(password).map((h) => (
+                <li key={h.label} className={h.met ? 'hint-met' : 'hint-unmet'}>
+                  {h.met ? '✓' : '○'} {h.label}
+                </li>
+              ))}
+            </ul>
+          )}
 
           {error && (
             <p className="login-error" role="alert">
@@ -88,6 +135,7 @@ export default function LoginPage({ onSignIn, onSignUp }: Props) {
             onClick={() => {
               setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
               setError(null);
+              setUsernameTaken(false);
             }}>
             {mode === 'sign-in' ? 'Sign up' : 'Sign in'}
           </button>
