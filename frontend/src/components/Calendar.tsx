@@ -85,7 +85,7 @@ export default function Calendar({ entries, onDateClick }: Props) {
         }}
         dateClick={(arg: DateClickArg) => onDateClick(arg.dateStr)}
         events={[...periodEvents]}
-        height="auto"
+        height="100%"
         dayCellClassNames={(arg) => {
           const ds = fcDateStr(arg.date);
           const classes: string[] = [];
