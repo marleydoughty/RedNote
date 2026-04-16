@@ -2,6 +2,14 @@
 
 A full-stack TypeScript app for tracking period days, notes, and cycle predictions in a clean, mobile-friendly interface.
 
+### Preview
+
+
+
+https://github.com/user-attachments/assets/8183dd34-5245-4485-be71-7a614eafae46
+
+
+
 ### Clone the repository
 
    ```sh
