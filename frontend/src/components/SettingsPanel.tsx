@@ -9,36 +9,41 @@ type Props = {
 export default function SettingsPanel({ user, onSignOut, onClose }: Props) {
   return (
     <>
-      <div className="settings-backdrop" onClick={onClose} aria-hidden="true" />
-      <div className="settings-panel" role="dialog" aria-label="Settings">
-        <div className="settings-header">
-          <h2>Settings</h2>
-          <button
-            className="settings-close"
-            onClick={onClose}
-            aria-label="Close settings">
-            ✕
-          </button>
-        </div>
+      <div
+        className="modal-backdrop"
+        onClick={onClose}
+        role="button"
+        aria-label="Close"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      />
+      <div
+        className="modal-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Settings">
+        <div className="modal-handle" />
+        <div className="modal-content">
+          <h2 className="modal-date">Profile</h2>
 
-        <div className="settings-section">
-          <p className="settings-section-label">Profile</p>
           <div className="settings-profile">
             <div className="settings-avatar" aria-hidden="true">
               {user.username.charAt(0).toUpperCase()}
             </div>
-            <div>
+            <div className="settings-profile-info">
               <p className="settings-username">{user.username}</p>
-              <p className="settings-user-id">ID #{user.userId}</p>
+              <p className="settings-user-id">@{user.username}</p>
             </div>
           </div>
-        </div>
 
-        <div className="settings-section">
-          <p className="settings-section-label">Account</p>
-          <button className="settings-signout" onClick={onSignOut}>
-            Sign out
-          </button>
+          <div className="modal-actions">
+            <button
+              className="btn btn-primary"
+              style={{ flex: 1 }}
+              onClick={onSignOut}>
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
     </>
