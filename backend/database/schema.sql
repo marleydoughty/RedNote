@@ -6,6 +6,13 @@ drop schema "public" cascade;
 
 create schema "public";
 
+create table "users" (
+  "userId"    serial      primary key,
+  "username"  text        not null unique,
+  "password"  text        not null,
+  "createdAt" timestamptz not null default now()
+);
+
 create table "cycle_entries" (
   "entryId"   serial      primary key,
   "userId"    text        not null,

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CycleEntry } from '../types';
+import { getToken } from './useAuth';
 
 export type EntryMap = Record<string, CycleEntry>;
 
@@ -20,6 +21,11 @@ type UseEntriesReturn = {
   ) => Promise<CycleEntry>;
 };
 
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const token = getToken();
+  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
+}
+
 export function useEntries(): UseEntriesReturn {
   const [entries, setEntries] = useState<EntryMap>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +36,9 @@ export function useEntries(): UseEntriesReturn {
     setError(null);
 
     try {
-      const res = await fetch(`/api/entries?start=${start}&end=${end}`);
+      const res = await fetch(`/api/entries?start=${start}&end=${end}`, {
+        headers: authHeaders(),
+      });
       if (!res.ok) throw new Error('Failed to fetch entries');
 
       const data: CycleEntry[] = await res.json();
@@ -68,12 +76,8 @@ export function useEntries(): UseEntriesReturn {
     ): Promise<CycleEntry> => {
       const res = await fetch('/api/entries', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date,
-          isPeriod,
-          notes: notes ?? null,
-        }),
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ date, isPeriod, notes: notes ?? null }),
       });
 
       if (!res.ok) throw new Error('Failed to mark day');
@@ -94,6 +98,7 @@ export function useEntries(): UseEntriesReturn {
   const unmarkDay = useCallback(async (date: string): Promise<void> => {
     const res = await fetch(`/api/entries/${date}`, {
       method: 'DELETE',
+      headers: authHeaders(),
     });
 
     if (!res.ok) throw new Error('Failed to remove entry');
@@ -116,12 +121,8 @@ export function useEntries(): UseEntriesReturn {
       if (!existing) {
         const res = await fetch('/api/entries', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date,
-            isPeriod,
-            notes: notes || null,
-          }),
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ date, isPeriod, notes: notes || null }),
         });
 
         if (!res.ok) throw new Error('Failed to create entry');
@@ -139,11 +140,8 @@ export function useEntries(): UseEntriesReturn {
 
       const res = await fetch(`/api/entries/${date}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          notes: notes || null,
-          isPeriod,
-        }),
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ notes: notes || null, isPeriod }),
       });
 
       if (!res.ok) throw new Error('Failed to update entry');

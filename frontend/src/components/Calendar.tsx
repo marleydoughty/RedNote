@@ -5,6 +5,7 @@ import interactionPlugin from '@fullcalendar/interaction/index.js';
 import type { DateClickArg } from '@fullcalendar/interaction/index.js';
 import type { EventInput } from '@fullcalendar/core/index.js';
 import type { CycleEntry, Prediction } from '../types';
+import { getToken } from '../hooks/useAuth';
 
 type Props = {
   entries: Record<string, CycleEntry>;
@@ -23,7 +24,9 @@ export default function Calendar({ entries, onDateClick }: Props) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
 
   useEffect(() => {
-    fetch('/api/predict')
+    fetch('/api/predict', {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    })
       .then((r) => r.json())
       .then((data) => setPredictions(data.predictions ?? []))
       .catch(() => {});

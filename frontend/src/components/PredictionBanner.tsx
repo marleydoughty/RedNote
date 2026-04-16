@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { PredictResponse } from '../types';
 import predictIcon from '../assets/predict.png';
+import { getToken } from '../hooks/useAuth';
 
 export default function PredictionBanner() {
   const [data, setData] = useState<PredictResponse | null>(null);
 
   useEffect(() => {
-    fetch('/api/predict')
+    fetch('/api/predict', {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    })
       .then((r) => r.json())
       .then(setData)
       .catch(() => {});
