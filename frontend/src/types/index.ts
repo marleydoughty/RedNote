@@ -17,3 +17,13 @@ export type PredictResponse = {
   predictions: Prediction[];
   averageCycleLength: number | null;
 };
+
+export type AuthUser = {
+  userId: number;
+  username: string;
+};
+
+export type AuthResponse = {
+  user: AuthUser;
+  token: string;
+};

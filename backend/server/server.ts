@@ -1,7 +1,9 @@
 import 'dotenv/config.js';
 import express from 'express';
 import pg from 'pg';
-import { ClientError, errorMiddleware } from './lib/index.js';
+import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+import { ClientError, errorMiddleware, authMiddleware } from './lib/index.js';
 
 const db = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -20,7 +22,8 @@ app.use(express.static(reactStaticDir));
 app.use(express.static(uploadsStaticDir));
 app.use(express.json());
 
-const DEMO_USER_ID = 'demo-user-1';
+const tokenSecret = process.env.TOKEN_SECRET ?? '';
+if (!tokenSecret) throw new Error('TOKEN_SECRET not found in env');
 
 /** Converts a UTC Date to a YYYY-MM-DD string without timezone drift. */
 function utcDateStr(d: Date): string {
@@ -30,22 +33,71 @@ function utcDateStr(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** In the future this can come from auth/session. */
-function getUserId(): string {
-  return DEMO_USER_ID;
-}
+// ─── Auth Routes ─────────────────────────────────────────────────────────────
 
-// ─── Routes ──────────────────────────────────────────────────────────────────
+/** POST /api/auth/sign-up */
+app.post('/api/auth/sign-up', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      throw new ClientError(400, 'username and password are required');
+    }
+    const hashed = await argon2.hash(password);
+    const result = await db.query(
+      `INSERT INTO "users" ("username", "password")
+       VALUES ($1, $2)
+       RETURNING "userId", "username"`,
+      [username, hashed]
+    );
+    const user = result.rows[0];
+    const token = jwt.sign({ userId: user.userId }, tokenSecret, {
+      expiresIn: '7d',
+    });
+    res.status(201).json({ user, token });
+  } catch (err: any) {
+    if (err.code === '23505') {
+      next(new ClientError(409, 'username already taken'));
+    } else {
+      next(err);
+    }
+  }
+});
+
+/** POST /api/auth/sign-in */
+app.post('/api/auth/sign-in', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      throw new ClientError(400, 'username and password are required');
+    }
+    const result = await db.query(
+      `SELECT * FROM "users" WHERE "username" = $1`,
+      [username]
+    );
+    const user = result.rows[0];
+    if (!user) throw new ClientError(401, 'invalid credentials');
+    const valid = await argon2.verify(user.password, password);
+    if (!valid) throw new ClientError(401, 'invalid credentials');
+    const token = jwt.sign({ userId: user.userId }, tokenSecret, {
+      expiresIn: '7d',
+    });
+    res.json({ user: { userId: user.userId, username: user.username }, token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Protected Routes ─────────────────────────────────────────────────────────
 
 /** GET /api/entries?start=YYYY-MM-DD&end=YYYY-MM-DD */
-app.get('/api/entries', async (req, res, next) => {
+app.get('/api/entries', authMiddleware, async (req, res, next) => {
   try {
     const { start, end } = req.query;
     if (!start || !end) {
       throw new ClientError(400, 'start and end query params are required');
     }
 
-    const userId = getUserId();
+    const userId = req.user!.userId;
 
     const result = await db.query(
       `SELECT * FROM "cycle_entries"
@@ -62,12 +114,12 @@ app.get('/api/entries', async (req, res, next) => {
 });
 
 /** POST /api/entries — create or upsert an entry for a date */
-app.post('/api/entries', async (req, res, next) => {
+app.post('/api/entries', authMiddleware, async (req, res, next) => {
   try {
     const { date, isPeriod, notes } = req.body;
     if (!date) throw new ClientError(400, 'date is required');
 
-    const userId = getUserId();
+    const userId = req.user!.userId;
 
     const result = await db.query(
       `INSERT INTO "cycle_entries" ("userId", "date", "isPeriod", "notes")
@@ -87,11 +139,11 @@ app.post('/api/entries', async (req, res, next) => {
 });
 
 /** PATCH /api/entries/:date — update notes or isPeriod on an existing entry */
-app.patch('/api/entries/:date', async (req, res, next) => {
+app.patch('/api/entries/:date', authMiddleware, async (req, res, next) => {
   try {
     const { date } = req.params;
     const { isPeriod, notes } = req.body;
-    const userId = getUserId();
+    const userId = req.user!.userId;
 
     const result = await db.query(
       `UPDATE "cycle_entries"
@@ -115,10 +167,10 @@ app.patch('/api/entries/:date', async (req, res, next) => {
 });
 
 /** DELETE /api/entries/:date */
-app.delete('/api/entries/:date', async (req, res, next) => {
+app.delete('/api/entries/:date', authMiddleware, async (req, res, next) => {
   try {
     const { date } = req.params;
-    const userId = getUserId();
+    const userId = req.user!.userId;
 
     const result = await db.query(
       `DELETE FROM "cycle_entries"
@@ -139,9 +191,9 @@ app.delete('/api/entries/:date', async (req, res, next) => {
 });
 
 /** GET /api/predict — return predicted period + ovulation data */
-app.get('/api/predict', async (req, res, next) => {
+app.get('/api/predict', authMiddleware, async (req, res, next) => {
   try {
-    const userId = getUserId();
+    const userId = req.user!.userId;
 
     const result = await db.query(
       `SELECT "date" FROM "cycle_entries"
