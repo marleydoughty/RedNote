@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CycleEntry } from '../types';
-import { getToken } from './useAuth';
+import { toDateStr } from '../utils/dateUtils';
+import { authHeaders } from './useAuth';
 
 export type EntryMap = Record<string, CycleEntry>;
 
@@ -21,11 +22,6 @@ type UseEntriesReturn = {
     isPeriod: boolean
   ) => Promise<CycleEntry>;
 };
-
-function authHeaders(extra?: Record<string, string>): Record<string, string> {
-  const token = getToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
 
 export function useEntries(userId?: number): UseEntriesReturn {
   const [entries, setEntries] = useState<EntryMap>({});
@@ -169,10 +165,7 @@ export function useEntries(userId?: number): UseEntriesReturn {
       const dates: string[] = Array.from({ length: diffDays + 1 }, (_, i) => {
         const d = new Date(start);
         d.setDate(d.getDate() + i);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-          2,
-          '0'
-        )}-${String(d.getDate()).padStart(2, '0')}`;
+        return toDateStr(d);
       });
       await Promise.all(
         dates.map((date) =>
@@ -210,11 +203,4 @@ function normalizeEntry(entry: CycleEntry): CycleEntry {
     ...entry,
     date: entry.date.slice(0, 10),
   };
-}
-
-function toDateStr(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
 }

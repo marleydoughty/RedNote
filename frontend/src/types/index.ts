@@ -1,6 +1,6 @@
 export type CycleEntry = {
   entryId: number;
-  userId?: string;
+  userId?: number;
   date: string;
   isPeriod: boolean;
   notes: string | null;

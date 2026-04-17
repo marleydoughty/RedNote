@@ -15,7 +15,7 @@ create table "users" (
 
 create table "cycle_entries" (
   "entryId"   serial      primary key,
-  "userId"    text        not null,
+  "userId"    integer     not null references "users" ("userId") on delete cascade,
   "date"      date        not null,
   "isPeriod"  boolean     not null default false,
   "notes"     text,

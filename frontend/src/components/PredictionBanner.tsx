@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import type { PredictResponse } from '../types';
 import predictIcon from '../assets/predict.png';
-import { getToken } from '../hooks/useAuth';
+import { authHeaders } from '../hooks/useAuth';
+import {
+  OVULATION_WINDOW_START,
+  OVULATION_WINDOW_END,
+} from '../constants/cycleConstants';
 
 export default function PredictionBanner() {
   const [data, setData] = useState<PredictResponse | null>(null);
 
   useEffect(() => {
-    fetch('/api/predict', {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
+    fetch('/api/predict', { headers: authHeaders() })
       .then((r) => r.json())
       .then(setData)
       .catch(() => {});
@@ -59,8 +61,13 @@ export default function PredictionBanner() {
   let phaseLabel = 'Follicular phase';
 
   if (daysUntil <= 0 && daysUntil > -5) phaseLabel = 'Period';
-  else if (daysUntil >= 12 && daysUntil <= 16) phaseLabel = 'Ovulating';
-  else if (daysUntil >= 1 && daysUntil < 12) phaseLabel = 'Luteal phase';
+  else if (
+    daysUntil >= OVULATION_WINDOW_START &&
+    daysUntil <= OVULATION_WINDOW_END
+  )
+    phaseLabel = 'Ovulating';
+  else if (daysUntil >= 1 && daysUntil < OVULATION_WINDOW_START)
+    phaseLabel = 'Luteal phase';
   else phaseLabel = 'Follicular phase';
 
   return (
