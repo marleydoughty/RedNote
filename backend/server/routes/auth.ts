@@ -1,8 +1,24 @@
 import { Router } from 'express';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import type { Pool } from 'pg';
-import { ClientError } from '../lib/index.js';
+import { ClientError, authMiddleware } from '../lib/index.js';
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { error: 'Too many attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+};
 
 function validatePassword(password: string): string | null {
   if (password.length < 8) return 'Password must be at least 8 characters';
@@ -15,6 +31,14 @@ function validatePassword(password: string): string | null {
 
 export function createAuthRouter(db: Pool, tokenSecret: string): Router {
   const router = Router();
+
+  router.get('/me', authMiddleware, (req, res) => {
+    res.json({
+      user: (
+        req as import('../lib/authorization-middleware.js').AuthenticatedRequest
+      ).user,
+    });
+  });
 
   router.get('/check-username', async (req, res, next) => {
     try {
@@ -30,7 +54,7 @@ export function createAuthRouter(db: Pool, tokenSecret: string): Router {
     }
   });
 
-  router.post('/sign-up', async (req, res, next) => {
+  router.post('/sign-up', authLimiter, async (req, res, next) => {
     try {
       const { username, password } = req.body;
       if (!username || !password)
@@ -51,7 +75,8 @@ export function createAuthRouter(db: Pool, tokenSecret: string): Router {
         tokenSecret,
         { expiresIn: '7d' }
       );
-      res.status(201).json({ user, token });
+      res.cookie('token', token, COOKIE_OPTIONS);
+      res.status(201).json({ user });
     } catch (err: any) {
       if (err.code === '23505') {
         next(new ClientError(409, 'username already taken'));
@@ -61,7 +86,7 @@ export function createAuthRouter(db: Pool, tokenSecret: string): Router {
     }
   });
 
-  router.post('/sign-in', async (req, res, next) => {
+  router.post('/sign-in', authLimiter, async (req, res, next) => {
     try {
       const { username, password } = req.body;
       if (!username || !password)
@@ -79,13 +104,16 @@ export function createAuthRouter(db: Pool, tokenSecret: string): Router {
         tokenSecret,
         { expiresIn: '7d' }
       );
-      res.json({
-        user: { userId: user.userId, username: user.username },
-        token,
-      });
+      res.cookie('token', token, COOKIE_OPTIONS);
+      res.json({ user: { userId: user.userId, username: user.username } });
     } catch (err) {
       next(err);
     }
+  });
+
+  router.post('/sign-out', (_req, res) => {
+    res.clearCookie('token', COOKIE_OPTIONS);
+    res.json({ message: 'signed out' });
   });
 
   return router;

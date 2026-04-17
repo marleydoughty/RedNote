@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Pool } from 'pg';
 import { ClientError, authMiddleware } from '../lib/index.js';
+import type { AuthenticatedRequest } from '../lib/authorization-middleware.js';
 
 export function createEntriesRouter(db: Pool): Router {
   const router = Router();
@@ -10,7 +11,7 @@ export function createEntriesRouter(db: Pool): Router {
       const { start, end } = req.query;
       if (!start || !end)
         throw new ClientError(400, 'start and end query params are required');
-      const userId = req.user!.userId;
+      const { userId } = (req as AuthenticatedRequest).user;
       const result = await db.query(
         `SELECT * FROM "cycle_entries"
          WHERE "userId" = $1
@@ -28,7 +29,7 @@ export function createEntriesRouter(db: Pool): Router {
     try {
       const { date, isPeriod, notes } = req.body;
       if (!date) throw new ClientError(400, 'date is required');
-      const userId = req.user!.userId;
+      const { userId } = (req as AuthenticatedRequest).user;
       const result = await db.query(
         `INSERT INTO "cycle_entries" ("userId", "date", "isPeriod", "notes")
          VALUES ($1, $2, $3, $4)
@@ -49,7 +50,7 @@ export function createEntriesRouter(db: Pool): Router {
     try {
       const { date } = req.params;
       const { isPeriod, notes } = req.body;
-      const userId = req.user!.userId;
+      const { userId } = (req as AuthenticatedRequest).user;
       const result = await db.query(
         `UPDATE "cycle_entries"
          SET "isPeriod"  = COALESCE($3, "isPeriod"),
@@ -71,7 +72,7 @@ export function createEntriesRouter(db: Pool): Router {
   router.delete('/:date', authMiddleware, async (req, res, next) => {
     try {
       const { date } = req.params;
-      const userId = req.user!.userId;
+      const { userId } = (req as AuthenticatedRequest).user;
       const result = await db.query(
         `DELETE FROM "cycle_entries"
          WHERE "userId" = $1

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CycleEntry } from '../types';
 import { toDateStr } from '../utils/dateUtils';
-import { authHeaders } from './useAuth';
 
 export type EntryMap = Record<string, CycleEntry>;
 
@@ -23,6 +22,9 @@ type UseEntriesReturn = {
   ) => Promise<CycleEntry>;
 };
 
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+const CREDS = { credentials: 'include' as const };
+
 export function useEntries(userId?: number): UseEntriesReturn {
   const [entries, setEntries] = useState<EntryMap>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -31,21 +33,15 @@ export function useEntries(userId?: number): UseEntriesReturn {
   const fetchEntries = useCallback(async (start: string, end: string) => {
     setIsLoading(true);
     setError(null);
-
     try {
-      const res = await fetch(`/api/entries?start=${start}&end=${end}`, {
-        headers: authHeaders(),
-      });
+      const res = await fetch(`/api/entries?start=${start}&end=${end}`, CREDS);
       if (!res.ok) throw new Error('Failed to fetch entries');
-
       const data: CycleEntry[] = await res.json();
       const map: EntryMap = {};
-
       for (const entry of data) {
-        const normalizedEntry = normalizeEntry(entry);
-        map[normalizedEntry.date] = normalizedEntry;
+        const normalized = normalizeEntry(entry);
+        map[normalized.date] = normalized;
       }
-
       setEntries(map);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -59,10 +55,8 @@ export function useEntries(userId?: number): UseEntriesReturn {
     const now = new Date();
     const start = new Date(now);
     start.setMonth(start.getMonth() - 6);
-
     const end = new Date(now);
     end.setMonth(end.getMonth() + 6);
-
     fetchEntries(toDateStr(start), toDateStr(end));
   }, [fetchEntries, userId]);
 
@@ -74,21 +68,15 @@ export function useEntries(userId?: number): UseEntriesReturn {
     ): Promise<CycleEntry> => {
       const res = await fetch('/api/entries', {
         method: 'POST',
-        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        headers: JSON_HEADERS,
+        ...CREDS,
         body: JSON.stringify({ date, isPeriod, notes: notes ?? null }),
       });
-
       if (!res.ok) throw new Error('Failed to mark day');
-
       const entry: CycleEntry = await res.json();
-      const normalizedEntry = normalizeEntry(entry);
-
-      setEntries((prev) => ({
-        ...prev,
-        [normalizedEntry.date]: normalizedEntry,
-      }));
-
-      return normalizedEntry;
+      const normalized = normalizeEntry(entry);
+      setEntries((prev) => ({ ...prev, [normalized.date]: normalized }));
+      return normalized;
     },
     []
   );
@@ -96,11 +84,9 @@ export function useEntries(userId?: number): UseEntriesReturn {
   const unmarkDay = useCallback(async (date: string): Promise<void> => {
     const res = await fetch(`/api/entries/${date}`, {
       method: 'DELETE',
-      headers: authHeaders(),
+      ...CREDS,
     });
-
     if (!res.ok) throw new Error('Failed to remove entry');
-
     setEntries((prev) => {
       const next = { ...prev };
       delete next[date];
@@ -115,44 +101,30 @@ export function useEntries(userId?: number): UseEntriesReturn {
       isPeriod: boolean
     ): Promise<CycleEntry> => {
       const existing = entries[date];
-
       if (!existing) {
         const res = await fetch('/api/entries', {
           method: 'POST',
-          headers: authHeaders({ 'Content-Type': 'application/json' }),
+          headers: JSON_HEADERS,
+          ...CREDS,
           body: JSON.stringify({ date, isPeriod, notes: notes || null }),
         });
-
         if (!res.ok) throw new Error('Failed to create entry');
-
         const entry: CycleEntry = await res.json();
-        const normalizedEntry = normalizeEntry(entry);
-
-        setEntries((prev) => ({
-          ...prev,
-          [normalizedEntry.date]: normalizedEntry,
-        }));
-
-        return normalizedEntry;
+        const normalized = normalizeEntry(entry);
+        setEntries((prev) => ({ ...prev, [normalized.date]: normalized }));
+        return normalized;
       }
-
       const res = await fetch(`/api/entries/${date}`, {
         method: 'PATCH',
-        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        headers: JSON_HEADERS,
+        ...CREDS,
         body: JSON.stringify({ notes: notes || null, isPeriod }),
       });
-
       if (!res.ok) throw new Error('Failed to update entry');
-
       const updated: CycleEntry = await res.json();
-      const normalizedEntry = normalizeEntry(updated);
-
-      setEntries((prev) => ({
-        ...prev,
-        [normalizedEntry.date]: normalizedEntry,
-      }));
-
-      return normalizedEntry;
+      const normalized = normalizeEntry(updated);
+      setEntries((prev) => ({ ...prev, [normalized.date]: normalized }));
+      return normalized;
     },
     [entries]
   );
@@ -171,12 +143,12 @@ export function useEntries(userId?: number): UseEntriesReturn {
         dates.map((date) =>
           fetch('/api/entries', {
             method: 'POST',
-            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            headers: JSON_HEADERS,
+            ...CREDS,
             body: JSON.stringify({ date, isPeriod: true, notes: null }),
           })
         )
       );
-      // Refresh entries after bulk save
       const now = new Date();
       const rangeStart = new Date(now);
       rangeStart.setMonth(rangeStart.getMonth() - 6);
@@ -199,8 +171,5 @@ export function useEntries(userId?: number): UseEntriesReturn {
 }
 
 function normalizeEntry(entry: CycleEntry): CycleEntry {
-  return {
-    ...entry,
-    date: entry.date.slice(0, 10),
-  };
+  return { ...entry, date: entry.date.slice(0, 10) };
 }

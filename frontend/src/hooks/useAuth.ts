@@ -1,25 +1,12 @@
 import { useState, useCallback } from 'react';
 import type { AuthUser, AuthResponse } from '../types';
 
-const TOKEN_KEY = 'rednote_token';
-
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function authHeaders(
-  extra?: Record<string, string>
-): Record<string, string> {
-  const token = getToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
-
-type UseAuthReturn = {
+export type UseAuthReturn = {
   user: AuthUser | null;
   setUser: (user: AuthUser | null) => void;
   signIn: (username: string, password: string) => Promise<AuthUser>;
   signUp: (username: string, password: string) => Promise<AuthUser>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 };
 
 export function useAuth(): UseAuthReturn {
@@ -29,13 +16,13 @@ export function useAuth(): UseAuthReturn {
     const res = await fetch('/api/auth/sign-in', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
       throw new Error('Invalid username or password');
     }
-    const { user, token }: AuthResponse = await res.json();
-    localStorage.setItem(TOKEN_KEY, token);
+    const { user }: Pick<AuthResponse, 'user'> = await res.json();
     setUser(user);
     return user;
   }, []);
@@ -44,20 +31,23 @@ export function useAuth(): UseAuthReturn {
     const res = await fetch('/api/auth/sign-up', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
       const { error } = await res.json();
       throw new Error(error ?? 'Sign up failed');
     }
-    const { user, token }: AuthResponse = await res.json();
-    localStorage.setItem(TOKEN_KEY, token);
+    const { user }: Pick<AuthResponse, 'user'> = await res.json();
     setUser(user);
     return user;
   }, []);
 
-  const signOut = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+  const signOut = useCallback(async () => {
+    await fetch('/api/auth/sign-out', {
+      method: 'POST',
+      credentials: 'include',
+    });
     setUser(null);
   }, []);
 
