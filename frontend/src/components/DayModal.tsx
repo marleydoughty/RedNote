@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { CycleEntry } from '../types';
+import { formatDisplayDate } from '../utils/dateUtils';
 
 type Props = {
   date: string;
@@ -39,10 +40,7 @@ export default function DayModal({
     setEndDate(date);
   }, [entry, date]);
 
-  const formattedDate = new Date(`${date}T00:00:00`).toLocaleDateString(
-    'en-US',
-    { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }
-  );
+  const formattedDate = formatDisplayDate(date);
 
   const isRange = isPeriod && endDate > date;
 

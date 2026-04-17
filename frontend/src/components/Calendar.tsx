@@ -6,6 +6,7 @@ import type { DateClickArg } from '@fullcalendar/interaction/index.js';
 import type { EventInput } from '@fullcalendar/core/index.js';
 import type { CycleEntry, Prediction } from '../types';
 import { getToken } from '../hooks/useAuth';
+import { toUTCDateStr, toDateStr } from '../utils/dateUtils';
 
 type Props = {
   entries: Record<string, CycleEntry>;
@@ -14,10 +15,7 @@ type Props = {
 
 /** Convert a FullCalendar UTC date to a YYYY-MM-DD string */
 function fcDateStr(date: Date): string {
-  const y = date.getUTCFullYear();
-  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(date.getUTCDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  return toUTCDateStr(date);
 }
 
 export default function Calendar({ entries, onDateClick }: Props) {
@@ -39,28 +37,20 @@ export default function Calendar({ entries, onDateClick }: Props) {
   );
   const predictDateSet = new Set(
     predictions.flatMap((p) => {
-      const base = new Date(`${p.date}T00:00:00`);
       return Array.from({ length: 5 }, (_, i) => {
-        const d = new Date(base);
-        d.setDate(d.getDate() - 2 + i); // days -2,-1,0,+1,+2 around predicted start
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-          2,
-          '0'
-        )}-${String(d.getDate()).padStart(2, '0')}`;
+        const d = new Date(`${p.date}T00:00:00`);
+        d.setDate(d.getDate() - 2 + i);
+        return toDateStr(d);
       });
     })
   );
 
   const ovulationDateSet = new Set(
     predictions.flatMap((p) => {
-      const base = new Date(`${p.date}T00:00:00`);
       return Array.from({ length: 5 }, (_, i) => {
-        const d = new Date(base);
-        d.setDate(d.getDate() - (16 - i)); // days 16,15,14,13,12 before
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-          2,
-          '0'
-        )}-${String(d.getDate()).padStart(2, '0')}`;
+        const d = new Date(`${p.date}T00:00:00`);
+        d.setDate(d.getDate() - (16 - i));
+        return toDateStr(d);
       });
     })
   );
