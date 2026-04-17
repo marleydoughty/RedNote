@@ -16,7 +16,9 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { entries, markDay, unmarkDay, updateNote } = useEntries(user?.userId);
+  const { entries, markDay, markRange, unmarkDay, updateNote } = useEntries(
+    user?.userId
+  );
 
   // Restore session from token on mount
   useEffect(() => {
@@ -84,6 +86,7 @@ export default function App() {
           date={selectedDate}
           entry={entries[selectedDate]}
           onMarkDay={markDay}
+          onMarkRange={markRange}
           onUnmarkDay={unmarkDay}
           onUpdateNote={updateNote}
           onClose={() => setSelectedDate(null)}

@@ -9,6 +9,7 @@ type Props = {
     isPeriod: boolean,
     notes?: string
   ) => Promise<CycleEntry>;
+  onMarkRange: (startDate: string, endDate: string) => Promise<void>;
   onUnmarkDay: (date: string) => Promise<void>;
   onUpdateNote: (
     date: string,
@@ -22,18 +23,20 @@ export default function DayModal({
   date,
   entry,
   onMarkDay,
+  onMarkRange,
   onUnmarkDay,
   onUpdateNote,
   onClose,
 }: Props) {
   const [isPeriod, setIsPeriod] = useState(entry?.isPeriod ?? false);
+  const [endDate, setEndDate] = useState(date);
   const [notes, setNotes] = useState(entry?.notes ?? '');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync when entry changes (e.g. navigating to a different day)
   useEffect(() => {
     setIsPeriod(entry?.isPeriod ?? false);
     setNotes(entry?.notes ?? '');
+    setEndDate(date);
   }, [entry, date]);
 
   const formattedDate = new Date(`${date}T00:00:00`).toLocaleDateString(
@@ -41,10 +44,14 @@ export default function DayModal({
     { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }
   );
 
+  const isRange = isPeriod && endDate > date;
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      if (entry) {
+      if (isRange) {
+        await onMarkRange(date, endDate);
+      } else if (entry) {
         if (!isPeriod && !notes.trim()) {
           await onUnmarkDay(date);
         } else {
@@ -108,15 +115,30 @@ export default function DayModal({
             </button>
           </label>
 
-          <textarea
-            id="day-notes"
-            className="notes-input"
-            placeholder="Add a note for this day…"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-            aria-label="Day notes"
-          />
+          {isPeriod && (
+            <label className="range-field">
+              <span>Ends on</span>
+              <input
+                type="date"
+                value={endDate}
+                min={date}
+                onChange={(e) => setEndDate(e.target.value)}
+                aria-label="Period end date"
+              />
+            </label>
+          )}
+
+          {!isRange && (
+            <textarea
+              id="day-notes"
+              className="notes-input"
+              placeholder="Add a note for this day…"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              aria-label="Day notes"
+            />
+          )}
 
           <div className="modal-actions">
             {entry && (
@@ -133,7 +155,17 @@ export default function DayModal({
               className="btn btn-primary"
               onClick={handleSave}
               disabled={isSaving}>
-              {isSaving ? 'Saving…' : 'Save'}
+              {isSaving
+                ? 'Saving…'
+                : isRange
+                ? `Save ${
+                    Math.round(
+                      (new Date(`${endDate}T00:00:00`).getTime() -
+                        new Date(`${date}T00:00:00`).getTime()) /
+                        86400000
+                    ) + 1
+                  } days`
+                : 'Save'}
             </button>
           </div>
         </div>

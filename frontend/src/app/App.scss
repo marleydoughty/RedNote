@@ -809,3 +809,32 @@
     rgba(180, 225, 250, 0.3) 7px
   );
 }
+
+// ─── Range Field ───────────────────────────────────────────────────────────────
+.range-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  input[type='date'] {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    padding: 0.4rem 0.75rem;
+    transition: border-color var(--transition);
+
+    &:focus {
+      outline: none;
+      border-color: rgba(232, 84, 122, 0.5);
+    }
+  }
+}

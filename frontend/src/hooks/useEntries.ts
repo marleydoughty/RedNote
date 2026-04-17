@@ -13,6 +13,7 @@ type UseEntriesReturn = {
     isPeriod: boolean,
     notes?: string
   ) => Promise<CycleEntry>;
+  markRange: (startDate: string, endDate: string) => Promise<void>;
   unmarkDay: (date: string) => Promise<void>;
   updateNote: (
     date: string,
@@ -160,7 +161,48 @@ export function useEntries(userId?: number): UseEntriesReturn {
     [entries]
   );
 
-  return { entries, isLoading, error, markDay, unmarkDay, updateNote };
+  const markRange = useCallback(
+    async (startDate: string, endDate: string): Promise<void> => {
+      const start = new Date(`${startDate}T00:00:00`);
+      const end = new Date(`${endDate}T00:00:00`);
+      const diffDays = Math.round((end.getTime() - start.getTime()) / 86400000);
+      const dates: string[] = Array.from({ length: diffDays + 1 }, (_, i) => {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+          2,
+          '0'
+        )}-${String(d.getDate()).padStart(2, '0')}`;
+      });
+      await Promise.all(
+        dates.map((date) =>
+          fetch('/api/entries', {
+            method: 'POST',
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ date, isPeriod: true, notes: null }),
+          })
+        )
+      );
+      // Refresh entries after bulk save
+      const now = new Date();
+      const rangeStart = new Date(now);
+      rangeStart.setMonth(rangeStart.getMonth() - 6);
+      const rangeEnd = new Date(now);
+      rangeEnd.setMonth(rangeEnd.getMonth() + 6);
+      await fetchEntries(toDateStr(rangeStart), toDateStr(rangeEnd));
+    },
+    [fetchEntries]
+  );
+
+  return {
+    entries,
+    isLoading,
+    error,
+    markDay,
+    markRange,
+    unmarkDay,
+    updateNote,
+  };
 }
 
 function normalizeEntry(entry: CycleEntry): CycleEntry {
