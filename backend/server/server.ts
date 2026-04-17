@@ -1,6 +1,7 @@
 import 'dotenv/config.js';
 import express from 'express';
 import pg from 'pg';
+import cookieParser from 'cookie-parser';
 import { errorMiddleware } from './lib/index.js';
 import { createAuthRouter } from './routes/auth.js';
 import { createEntriesRouter } from './routes/entries.js';
@@ -22,6 +23,7 @@ const uploadsStaticDir = new URL('public', import.meta.url).pathname;
 app.use(express.static(reactStaticDir));
 app.use(express.static(uploadsStaticDir));
 app.use(express.json());
+app.use(cookieParser());
 
 const tokenSecret = process.env.TOKEN_SECRET ?? '';
 if (!tokenSecret) throw new Error('TOKEN_SECRET not found in env');

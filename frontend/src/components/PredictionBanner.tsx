@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PredictResponse } from '../types';
 import predictIcon from '../assets/predict.png';
-import { authHeaders } from '../hooks/useAuth';
 import {
   OVULATION_WINDOW_START,
   OVULATION_WINDOW_END,
@@ -11,7 +10,7 @@ export default function PredictionBanner() {
   const [data, setData] = useState<PredictResponse | null>(null);
 
   useEffect(() => {
-    fetch('/api/predict', { headers: authHeaders() })
+    fetch('/api/predict', { credentials: 'include' })
       .then((r) => r.json())
       .then(setData)
       .catch(() => {});

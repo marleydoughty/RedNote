@@ -6,7 +6,7 @@ import LoginPage from '../components/LoginPage';
 import SettingsPanel from '../components/SettingsPanel';
 import Legend from '../components/Legend';
 import { useEntries } from '../hooks/useEntries';
-import { useAuth, getToken } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 import logoUrl from '../assets/cycle.png';
 import settingsUrl from '../assets/settings.png';
 import './App.scss';
@@ -20,20 +20,15 @@ export default function App() {
     user?.userId
   );
 
-  // Restore session from token on mount
+  // Restore session from cookie on mount
   useEffect(() => {
-    const token = getToken();
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.exp * 1000 > Date.now()) {
-          setUser({ userId: payload.userId, username: payload.username ?? '' });
-        }
-      } catch {
-        // invalid token, stay logged out
-      }
-    }
-    setAuthReady(true);
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.user) setUser(data.user);
+      })
+      .catch(() => {})
+      .finally(() => setAuthReady(true));
   }, [setUser]);
 
   if (!authReady) return null;
