@@ -21,6 +21,5 @@ if [ -z "$DATABASE_URL" ]; then
 fi
 
 psql "$DATABASE_URL" -f "$SCHEMA_FILE"
-psql "$DATABASE_URL" -f "$DATA_FILE"
 
 echo "Database import complete."
