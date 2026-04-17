@@ -4,6 +4,12 @@ import pg from 'pg';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { ClientError, errorMiddleware, authMiddleware } from './lib/index.js';
+import {
+  DEFAULT_CYCLE_LENGTH,
+  MIN_CYCLE_GAP_DAYS,
+  OVULATION_WINDOW_END,
+  PREDICTION_COUNT,
+} from './constants/cycleConstants.js';
 
 const db = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -265,11 +271,11 @@ app.get('/api/predict', authMiddleware, async (req, res, next) => {
       if (i === 0) return true;
       const daysSincePrev =
         (d.getTime() - rawStarts[i - 1].getTime()) / (1000 * 60 * 60 * 24);
-      return daysSincePrev >= 3;
+      return daysSincePrev >= MIN_CYCLE_GAP_DAYS;
     });
 
     const lastStart = startDates[startDates.length - 1];
-    let avgCycle = 28;
+    let avgCycle = DEFAULT_CYCLE_LENGTH;
     let confidence: 'high' | 'medium' | 'low' = 'low';
 
     if (startDates.length >= 2) {
@@ -286,9 +292,9 @@ app.get('/api/predict', authMiddleware, async (req, res, next) => {
       confidence = startDates.length >= 3 ? 'high' : 'medium';
     }
 
-    const predictions = [1, 2, 3].map((i) => {
+    const predictions = Array.from({ length: PREDICTION_COUNT }, (_, i) => {
       const predicted = new Date(lastStart);
-      predicted.setUTCDate(predicted.getUTCDate() + avgCycle * i);
+      predicted.setUTCDate(predicted.getUTCDate() + avgCycle * (i + 1));
       return { date: utcDateStr(predicted), confidence };
     });
 
@@ -297,7 +303,9 @@ app.get('/api/predict', authMiddleware, async (req, res, next) => {
     const ovulationDays: string[] = [];
     if (nextPeriodStart) {
       const ovulationDate = new Date(`${nextPeriodStart}T00:00:00Z`);
-      ovulationDate.setUTCDate(ovulationDate.getUTCDate() - 14);
+      ovulationDate.setUTCDate(
+        ovulationDate.getUTCDate() - OVULATION_WINDOW_END
+      );
 
       ovulationDays.push(utcDateStr(ovulationDate));
     }

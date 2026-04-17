@@ -7,6 +7,13 @@ export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+export function authHeaders(
+  extra?: Record<string, string>
+): Record<string, string> {
+  const token = getToken();
+  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
+}
+
 type UseAuthReturn = {
   user: AuthUser | null;
   setUser: (user: AuthUser | null) => void;

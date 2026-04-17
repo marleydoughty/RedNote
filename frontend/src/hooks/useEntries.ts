@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CycleEntry } from '../types';
-import { getToken } from './useAuth';
 import { toDateStr } from '../utils/dateUtils';
+import { authHeaders } from './useAuth';
 
 export type EntryMap = Record<string, CycleEntry>;
 
@@ -22,11 +22,6 @@ type UseEntriesReturn = {
     isPeriod: boolean
   ) => Promise<CycleEntry>;
 };
-
-function authHeaders(extra?: Record<string, string>): Record<string, string> {
-  const token = getToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
 
 export function useEntries(userId?: number): UseEntriesReturn {
   const [entries, setEntries] = useState<EntryMap>({});

@@ -5,8 +5,12 @@ import interactionPlugin from '@fullcalendar/interaction/index.js';
 import type { DateClickArg } from '@fullcalendar/interaction/index.js';
 import type { EventInput } from '@fullcalendar/core/index.js';
 import type { CycleEntry, Prediction } from '../types';
-import { getToken } from '../hooks/useAuth';
 import { toUTCDateStr, toDateStr } from '../utils/dateUtils';
+import { authHeaders } from '../hooks/useAuth';
+import {
+  OVULATION_WINDOW_END,
+  PREDICTION_WINDOW_DAYS,
+} from '../constants/cycleConstants';
 
 type Props = {
   entries: Record<string, CycleEntry>;
@@ -22,9 +26,7 @@ export default function Calendar({ entries, onDateClick }: Props) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
 
   useEffect(() => {
-    fetch('/api/predict', {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
+    fetch('/api/predict', { headers: authHeaders() })
       .then((r) => r.json())
       .then((data) => setPredictions(data.predictions ?? []))
       .catch(() => {});
@@ -37,7 +39,7 @@ export default function Calendar({ entries, onDateClick }: Props) {
   );
   const predictDateSet = new Set(
     predictions.flatMap((p) => {
-      return Array.from({ length: 5 }, (_, i) => {
+      return Array.from({ length: PREDICTION_WINDOW_DAYS }, (_, i) => {
         const d = new Date(`${p.date}T00:00:00`);
         d.setDate(d.getDate() - 2 + i);
         return toDateStr(d);
@@ -47,9 +49,9 @@ export default function Calendar({ entries, onDateClick }: Props) {
 
   const ovulationDateSet = new Set(
     predictions.flatMap((p) => {
-      return Array.from({ length: 5 }, (_, i) => {
+      return Array.from({ length: PREDICTION_WINDOW_DAYS }, (_, i) => {
         const d = new Date(`${p.date}T00:00:00`);
-        d.setDate(d.getDate() - (16 - i));
+        d.setDate(d.getDate() - (OVULATION_WINDOW_END - i));
         return toDateStr(d);
       });
     })
