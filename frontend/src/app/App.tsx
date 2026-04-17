@@ -4,6 +4,7 @@ import DayModal from '../components/DayModal';
 import PredictionBanner from '../components/PredictionBanner';
 import LoginPage from '../components/LoginPage';
 import SettingsPanel from '../components/SettingsPanel';
+import Legend from '../components/Legend';
 import { useEntries } from '../hooks/useEntries';
 import { useAuth, getToken } from '../hooks/useAuth';
 import logoUrl from '../assets/cycle.png';
@@ -15,7 +16,9 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { entries, markDay, unmarkDay, updateNote } = useEntries(user?.userId);
+  const { entries, markDay, markRange, unmarkDay, updateNote } = useEntries(
+    user?.userId
+  );
 
   // Restore session from token on mount
   useEffect(() => {
@@ -64,6 +67,7 @@ export default function App() {
       <main className="app-main">
         <PredictionBanner />
         <Calendar entries={entries} onDateClick={setSelectedDate} />
+        <Legend />
       </main>
 
       {settingsOpen && (
@@ -82,6 +86,7 @@ export default function App() {
           date={selectedDate}
           entry={entries[selectedDate]}
           onMarkDay={markDay}
+          onMarkRange={markRange}
           onUnmarkDay={unmarkDay}
           onUpdateNote={updateNote}
           onClose={() => setSelectedDate(null)}

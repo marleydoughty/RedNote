@@ -15,7 +15,25 @@ export default function PredictionBanner() {
       .catch(() => {});
   }, []);
 
-  if (!data || data.predictions.length === 0) return null;
+  if (!data || data.predictions.length === 0) {
+    return (
+      <div className="prediction-banner" role="status">
+        <span className="prediction-icon" aria-hidden="true">
+          <img
+            src={predictIcon}
+            alt=""
+            style={{ width: '30px', height: '30px' }}
+          />
+        </span>
+        <div className="prediction-text">
+          <span className="prediction-label">Next cycle predicted</span>
+          <span className="prediction-date" style={{ opacity: 0.5 }}>
+            Log a few cycles to see predictions
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   const next = data.predictions[0];
   const nextDate = new Date(`${next.date}T00:00:00`);

@@ -761,3 +761,164 @@
   font-size: 0.78rem;
   color: var(--text-muted);
 }
+
+// ─── Legend ────────────────────────────────────────────────────────────────────
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 0.25rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-period {
+  background: rgba(232, 84, 122, 0.35);
+}
+
+.legend-predicted {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(220, 100, 120, 0.5) 0px,
+    rgba(220, 100, 120, 0.5) 2.5px,
+    rgba(252, 231, 236, 0.5) 2.5px,
+    rgba(252, 231, 236, 0.5) 7px
+  );
+}
+
+.legend-ovulation {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(100, 185, 240, 0.6) 0px,
+    rgba(100, 185, 240, 0.6) 2.5px,
+    rgba(180, 225, 250, 0.3) 2.5px,
+    rgba(180, 225, 250, 0.3) 7px
+  );
+}
+
+// ─── Range Field ───────────────────────────────────────────────────────────────
+.range-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  input[type='date'] {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    padding: 0.4rem 0.75rem;
+    transition: border-color var(--transition);
+
+    &:focus {
+      outline: none;
+      border-color: rgba(232, 84, 122, 0.5);
+    }
+  }
+}
+
+.settings-credits {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ─── Settings Accordion ────────────────────────────────────────────────────────
+.settings-accordion {
+  border-top: 1px solid var(--border);
+}
+
+.settings-accordion-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0.9rem 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+.settings-accordion-chevron {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.settings-accordion-body {
+  padding-bottom: 1rem;
+}
+
+.settings-about-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0 0 0.75rem;
+}
+
+.settings-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.faq-q {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0.75rem 0 0.2rem;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.faq-a {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.settings-account {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
