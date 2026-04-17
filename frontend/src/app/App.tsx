@@ -4,6 +4,7 @@ import DayModal from '../components/DayModal';
 import PredictionBanner from '../components/PredictionBanner';
 import LoginPage from '../components/LoginPage';
 import SettingsPanel from '../components/SettingsPanel';
+import Legend from '../components/Legend';
 import { useEntries } from '../hooks/useEntries';
 import { useAuth, getToken } from '../hooks/useAuth';
 import logoUrl from '../assets/cycle.png';
@@ -64,6 +65,7 @@ export default function App() {
       <main className="app-main">
         <PredictionBanner />
         <Calendar entries={entries} onDateClick={setSelectedDate} />
+        <Legend />
       </main>
 
       {settingsOpen && (

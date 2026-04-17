@@ -761,3 +761,51 @@
   font-size: 0.78rem;
   color: var(--text-muted);
 }
+
+// ─── Legend ────────────────────────────────────────────────────────────────────
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 0.25rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-period {
+  background: rgba(232, 84, 122, 0.35);
+}
+
+.legend-predicted {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(220, 100, 120, 0.5) 0px,
+    rgba(220, 100, 120, 0.5) 2.5px,
+    rgba(252, 231, 236, 0.5) 2.5px,
+    rgba(252, 231, 236, 0.5) 7px
+  );
+}
+
+.legend-ovulation {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(100, 185, 240, 0.6) 0px,
+    rgba(100, 185, 240, 0.6) 2.5px,
+    rgba(180, 225, 250, 0.3) 2.5px,
+    rgba(180, 225, 250, 0.3) 7px
+  );
+}
