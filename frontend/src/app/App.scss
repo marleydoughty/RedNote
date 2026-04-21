@@ -121,16 +121,29 @@
   }
 
   .phase-badge {
-  font-size: 0.63rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  padding: 0.22rem 0.55rem;
-  border-radius: 100px;
-  flex-shrink: 0;
-  background: rgba(232, 84, 122, 0.10);
-  color: #d93f63;
-}
+    font-size: 0.63rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.22rem 0.55rem;
+    border-radius: 100px;
+    flex-shrink: 0;
+    background: rgba(232, 84, 122, 0.10);
+    color: #d93f63;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition);
+
+    &:hover {
+      background: rgba(232, 84, 122, 0.18);
+      border-color: rgba(232, 84, 122, 0.25);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
 }
 
 // ─── Calendar Wrapper ──────────────────────────────────────────────────────────
@@ -390,6 +403,9 @@
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem);
   animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
 
   // Cap width on larger screens, centre it
   max-width: 640px;
@@ -404,6 +420,7 @@
     background: var(--border-hover);
     border-radius: 100px;
     margin: 0.8rem auto 0;
+    flex-shrink: 0;
   }
 
   .modal-content {
@@ -411,6 +428,16 @@
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .modal-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    margin: -0.5rem -0.25rem;
+    padding: 0.5rem 0.25rem;
   }
 
   .modal-date {
@@ -418,6 +445,11 @@
     font-weight: 600;
     color: var(--text-primary);
     letter-spacing: -0.015em;
+    flex-shrink: 0;
+  }
+
+  .modal-actions {
+    flex-shrink: 0;
   }
 }
 

@@ -51,9 +51,11 @@ export default function DayModal({
         await onMarkRange(date, endDate);
       } else if (entry) {
         if (!isPeriod && !notes.trim()) {
+          // No period and no notes = delete entry
           await onUnmarkDay(date);
         } else {
-          await onUpdateNote(date, notes.trim(), isPeriod);
+          // Update with new values (empty string for notes if cleared)
+          await onUpdateNote(date, notes.trim() || '', isPeriod);
         }
       } else if (isPeriod || notes.trim()) {
         await onMarkDay(date, isPeriod, notes.trim() || undefined);

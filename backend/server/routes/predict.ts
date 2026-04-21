@@ -20,7 +20,19 @@ export function createPredictRouter(db: Pool): Router {
       const dates: Date[] = result.rows.map(
         (r: { date: string }) => new Date(r.date)
       );
-      res.json(predictCycles(dates));
+
+      console.log('\n=== PREDICTION REQUEST ===');
+      console.log('User ID:', userId);
+      console.log(
+        'Period dates from DB:',
+        result.rows.map((r: { date: string }) => r.date)
+      );
+
+      const predictions = predictCycles(dates);
+
+      console.log('=== END PREDICTION REQUEST ===\n');
+
+      res.json(predictions);
     } catch (err) {
       next(err);
     }

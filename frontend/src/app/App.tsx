@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import DayModal from '../components/DayModal';
 import PredictionBanner from '../components/PredictionBanner';
+import PhaseInfoModal from '../components/PhaseInfoModal';
 import LoginPage from '../components/LoginPage';
 import SettingsPanel from '../components/SettingsPanel';
 import Legend from '../components/Legend';
@@ -16,6 +17,7 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [phaseInfoOpen, setPhaseInfoOpen] = useState(false);
   const { entries, markDay, markRange, unmarkDay, updateNote } = useEntries(
     user?.userId
   );
@@ -60,10 +62,14 @@ export default function App() {
       </header>
 
       <main className="app-main">
-        <PredictionBanner />
+        <PredictionBanner onPhaseClick={() => setPhaseInfoOpen(true)} />
         <Calendar entries={entries} onDateClick={setSelectedDate} />
         <Legend />
       </main>
+
+      {phaseInfoOpen && (
+        <PhaseInfoModal onClose={() => setPhaseInfoOpen(false)} />
+      )}
 
       {settingsOpen && (
         <SettingsPanel

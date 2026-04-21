@@ -6,7 +6,11 @@ import {
   OVULATION_WINDOW_END,
 } from '../constants/cycleConstants';
 
-export default function PredictionBanner() {
+type Props = {
+  onPhaseClick: () => void;
+};
+
+export default function PredictionBanner({ onPhaseClick }: Props) {
   const [data, setData] = useState<PredictResponse | null>(null);
 
   useEffect(() => {
@@ -86,9 +90,12 @@ export default function PredictionBanner() {
         </span>
       </div>
 
-      <span className="phase-badge" title="Current cycle phase">
+      <button
+        className="phase-badge"
+        title="Current cycle phase - Click to learn more"
+        onClick={onPhaseClick}>
         {phaseLabel}
-      </span>
+      </button>
     </div>
   );
 }
