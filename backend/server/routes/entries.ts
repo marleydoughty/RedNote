@@ -51,16 +51,56 @@ export function createEntriesRouter(db: Pool): Router {
       const { date } = req.params;
       const { isPeriod, notes } = req.body;
       const { userId } = (req as AuthenticatedRequest).user;
+
+      console.log('PATCH request:', {
+        date,
+        isPeriod,
+        notes,
+        notesType: typeof notes,
+      });
+
+      // Build update query dynamically to handle empty strings
+      const updates: string[] = [];
+      const values: any[] = [userId, date];
+      let paramCount = 2;
+
+      if (isPeriod !== undefined && isPeriod !== null) {
+        paramCount++;
+        updates.push(`"isPeriod" = $${paramCount}`);
+        values.push(isPeriod);
+      }
+
+      if (notes !== undefined) {
+        paramCount++;
+        updates.push(`"notes" = $${paramCount}`);
+        values.push(notes === '' || notes === null ? null : notes);
+      }
+
+      if (updates.length === 0) {
+        throw new ClientError(400, 'No fields to update');
+      }
+
+      updates.push('"updatedAt" = now()');
+
+      console.log(
+        'SQL:',
+        `UPDATE "cycle_entries" SET ${updates.join(
+          ', '
+        )} WHERE "userId" = $1 AND "date" = $2`
+      );
+      console.log('Values:', values);
+
       const result = await db.query(
         `UPDATE "cycle_entries"
-         SET "isPeriod"  = COALESCE($3, "isPeriod"),
-             "notes"     = COALESCE($4, "notes"),
-             "updatedAt" = now()
+         SET ${updates.join(', ')}
          WHERE "userId" = $1
            AND "date" = $2
          RETURNING *`,
-        [userId, date, isPeriod ?? null, notes ?? null]
+        values
       );
+
+      console.log('Updated entry:', result.rows[0]);
+
       if (!result.rows[0])
         throw new ClientError(404, `No entry found for ${date}`);
       res.json(result.rows[0]);

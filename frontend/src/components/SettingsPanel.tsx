@@ -82,7 +82,8 @@ export default function SettingsPanel({ user, onSignOut, onClose }: Props) {
               <p className="faq-a">
                 Make sure all your period days are logged correctly with no
                 gaps. A missing day can split one cycle into two and throw off
-                the average.
+                the average. Also, avoid logging future dates as they can
+                interfere with the cycle calculations.
               </p>
             </div>
           </Section>

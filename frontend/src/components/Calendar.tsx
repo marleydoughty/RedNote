@@ -25,10 +25,16 @@ export default function Calendar({ entries, onDateClick }: Props) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
 
   useEffect(() => {
+    console.log('📅 Calendar: Fetching predictions, entries changed');
     fetch('/api/predict', { credentials: 'include' })
       .then((r) => r.json())
-      .then((data) => setPredictions(data.predictions ?? []))
-      .catch(() => {});
+      .then((data) => {
+        console.log('📊 Calendar: Received predictions:', data);
+        setPredictions(data.predictions ?? []);
+      })
+      .catch((err) => {
+        console.error('❌ Calendar: Error fetching predictions:', err);
+      });
   }, [entries]);
 
   const periodDateSet = new Set(
