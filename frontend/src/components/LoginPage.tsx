@@ -140,6 +140,26 @@ export default function LoginPage({ onSignIn, onSignUp }: Props) {
             {mode === 'sign-in' ? 'Sign up' : 'Sign in'}
           </button>
         </p>
+
+        {mode === 'sign-in' && (
+          <button
+            type="button"
+            className="demo-btn"
+            onClick={async () => {
+              setLoading(true);
+              setError(null);
+              try {
+                await onSignIn('demo', 'Demo123!');
+              } catch (err) {
+                setError('Demo account unavailable');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}>
+            Try Demo Account
+          </button>
+        )}
       </div>
     </div>
   );
