@@ -5,6 +5,7 @@ import PredictionBanner from '../components/PredictionBanner';
 import PhaseInfoModal from '../components/PhaseInfoModal';
 import LoginPage from '../components/LoginPage';
 import SettingsPanel from '../components/SettingsPanel';
+import DemoTour from '../components/DemoTour';
 import Legend from '../components/Legend';
 import { useEntries } from '../hooks/useEntries';
 import { useAuth } from '../hooks/useAuth';
@@ -18,6 +19,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [phaseInfoOpen, setPhaseInfoOpen] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const { entries, markDay, markRange, unmarkDay, updateNote } = useEntries(
     user?.userId
   );
@@ -27,7 +29,13 @@ export default function App() {
     fetch('/api/auth/me', { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.user) setUser(data.user);
+        if (data?.user) {
+          setUser(data.user);
+          // Show tour for demo user every time
+          if (data.user.username === 'demo') {
+            setTimeout(() => setShowTour(true), 500);
+          }
+        }
       })
       .catch(() => {})
       .finally(() => setAuthReady(true));
@@ -36,7 +44,19 @@ export default function App() {
   if (!authReady) return null;
 
   if (!user) {
-    return <LoginPage onSignIn={signIn} onSignUp={signUp} />;
+    return (
+      <LoginPage
+        onSignIn={async (username, password) => {
+          const user = await signIn(username, password);
+          // Show tour for demo user after sign in
+          if (user.username === 'demo') {
+            setTimeout(() => setShowTour(true), 500);
+          }
+          return user;
+        }}
+        onSignUp={signUp}
+      />
+    );
   }
 
   return (
@@ -91,6 +111,14 @@ export default function App() {
           onUnmarkDay={unmarkDay}
           onUpdateNote={updateNote}
           onClose={() => setSelectedDate(null)}
+        />
+      )}
+
+      {showTour && (
+        <DemoTour
+          onComplete={() => {
+            setShowTour(false);
+          }}
         />
       )}
     </div>
